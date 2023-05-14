@@ -29,6 +29,55 @@ Resources:
               - ''
               - - !GetAtt S3Bucket.Arn
                 - '/*'
+# *********************************************************** Rest API Gateway ***********************************************************
+  Products:
+    Type: AWS::ApiGateway::RestApi
+    Properties: 
+      Name: !Sub ${self:service}-${self:provider.stage}-products
+  ProductsDeployment: 
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: Method
+    Properties: 
+      RestApiId: !Ref Products
+      StageName: main
+  ProductsUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn: ProductsDeployment
+    Properties: 
+      ApiStages:
+        - ApiId: !Ref Products
+          Stage: main
+      UsagePlanName: !Sub ${self:service}-${self:provider.stage}-products-usage-plan
+
+  MethodExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service: apigateway.amazonaws.com
+              Action: "sts:AssumeRole"
+  Method:
+    DependsOn: MethodExecutionRole
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Credentials: !GetAtt MethodExecutionRole.Arn
+        Type: AWS
+        Uri: !Join  
+          - ''
+          - - 'arn:aws:apigateway:us-west-2:lambda:path//2015-03-31/functions/'
+            - !Sub arn:aws:lambda:${self:provider.region}:${AWS::AccountId}:function:${self:service}-${self:provider.stage}-test
+            - '/invocations'
+      ResourceId: !GetAtt Products.RootResourceId
+      RestApiId: !Ref Products
+
+
 Outputs:
   WebsiteURL:
     Value: !GetAtt 
@@ -43,3 +92,4 @@ Outputs:
           - S3Bucket
           - DomainName
     Description: Name of S3 bucket to hold website content
+    
