@@ -63,10 +63,10 @@ Resources:
     DependsOn: MethodExecutionRole
     Type: AWS::ApiGateway::Method
     Properties:
-      HttpMethod: POST
+      HttpMethod: GET
       AuthorizationType: NONE
       Integration:
-        IntegrationHttpMethod: POST
+        IntegrationHttpMethod: GET
         Credentials: !GetAtt MethodExecutionRole.Arn
         Type: AWS
         Uri: !Join  
