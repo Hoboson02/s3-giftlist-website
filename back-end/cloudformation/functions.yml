@@ -1,3 +1,6 @@
 test:
   handler: src/functions/test.handler
   timeout: 30
+productAPI:
+  handler: src/functions/productAPI.handler
+  timeout: 30
